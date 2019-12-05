@@ -6,49 +6,51 @@ import sys
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
 
+r = 0
 THETA = 25
-THETA2 = 30
+
+#y軸に対して回転し、枝の対象性を保つ
+THETA2 = 45
+THETA3 = 165
+THETA4 = 75
+
 R = 0.8
 K = 0
-L = 0.3
+L = 0.5
 
 def main():
     glutInitWindowPosition(100, 200)
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_RGBA)
-    glutCreateWindow(b"GLUT prog1")
+    glutCreateWindow(b"tree")
     glutDisplayFunc(display)
     glutReshapeFunc(resize)
+    glutKeyboardFunc(SpaceDown)
+    glutKeyboardUpFunc(SpaceUp)
     glutMouseFunc(mouse)
     init()
     glutMainLoop()
 
 
 def init():
-    global L
-    global WINDOW_HEIGHT, WINDOW_WIDTH
-    w = WINDOW_WIDTH
-    h = WINDOW_HEIGHT
+    glClearColor(0.0, 0.0, 0.0, 1.0)
     glLineWidth(2.0)
 
-    glLoadIdentity()
-    gluPerspective(30.0, float(w)/h, 1.0, 100.0)
-    gluLookAt(0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-    glClear(GL_COLOR_BUFFER_BIT)
-    glColor3d(0.0, 1.0, 0.0)
-    glBegin(GL_LINES)
-    glVertex2d(0, 0)
-    glVertex2d(0, L)
-    glEnd()
-    glFlush()
+    glEnable(GL_DEPTH_TEST)
 
 def resize(w, h):
     glViewport(0, 0, w, h)
     
+    glMatrixMode(GL_PROJECTION)
+
     glLoadIdentity()
     gluPerspective(30.0, float(w)/h, 1.0, 100.0)
-    gluLookAt(0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+
+    glMatrixMode(GL_MODELVIEW)
+
+def idle():
+    glutPostRedisplay()
 
 
 def v(k, l):
@@ -58,53 +60,67 @@ def v(k, l):
         glPushMatrix()
         glTranslated(0, l, 0)
 
-
-        if preRot == 0:
-            glRotated(preRot, 0, 0, 1)
-            glRotated(rotation, 0, 0, 1)
-        elif preRot == THETA2:
-            glRotated(preRot, 0, 1, 0)
-            glRotated(rotation, 1, 0, 0)
-        elif preRot == -THETA2:
-            glRotated(preRot, 0, 1, 0)
-            glRotated(rotation, 1, 0, 0)
-
-        glColor3d(0.0, 1.0, 0.0)
-        glBegin(GL_LINES)
-        glVertex2d(0, 0)
-        glVertex2d(0, l)
-        glEnd()
-        
+        glRotated(preRot, 0, 1, 0)    #y軸に対する回転
+        glRotated(rotation, 1, 0, 0)
+        drawBranch(l)
+       
         v(k+1, l*R)
-
-    if(k == 0):
-        return
     
-    if(K < k):
+    if(K < k or k == 0):
         return
     else:
-        v1(THETA, 0)
+        v1(-THETA, THETA2)
         glPopMatrix()
 
-        v1(THETA, THETA2)
+        v1(-THETA, THETA3)
         glPopMatrix()
 
-        v1(-THETA, -THETA2)
+        v1(-THETA, -THETA4)
         glPopMatrix()
+
+def drawBranch(l):
+    glColor3d(0.0, 1.0, 0.0)
+    glBegin(GL_LINES)
+    glVertex2d(0, 0)
+    glVertex2d(0, l)
+    glEnd()
+    
 
 def display():
-    glFlush()
+    global r
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+    gluLookAt(5.0, 5.0, 5.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0)
+
+    glRotated(float(r), 0.0, 1.0, 0.0)
+
+    drawBranch(L)
+
+    v(1, L)
+    glutSwapBuffers()
+
+    r += 1
+
+    if r >= 360:
+        r = 0
 
 def mouse(button, state, x, y):
     global K, L
     if state == GLUT_DOWN :
         if button == GLUT_LEFT_BUTTON:
             K += 1
-            v(1, L)
         elif button == GLUT_RIGHT_BUTTON:
             K = 0
             init()
-        glFlush()
+
+def SpaceDown(key, x, y):
+    if(key == b' '):
+        glutIdleFunc(idle)
+
+def SpaceUp(key, x, y):
+    if(key == b' '):
+        glutIdleFunc(0)
+
 
 
 if __name__ == "__main__": main()
