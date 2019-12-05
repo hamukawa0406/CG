@@ -27,11 +27,15 @@ def main():
 
 def init():
     global L
-    glClearColor(0.0, 0.0, 0.0, 1.0)
+    global WINDOW_HEIGHT, WINDOW_WIDTH
+    w = WINDOW_WIDTH
+    h = WINDOW_HEIGHT
     glLineWidth(2.0)
 
-
-
+    glLoadIdentity()
+    gluPerspective(30.0, float(w)/h, 1.0, 100.0)
+    gluLookAt(0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+    glClear(GL_COLOR_BUFFER_BIT)
     glColor3d(0.0, 1.0, 0.0)
     glBegin(GL_LINES)
     glVertex2d(0, 0)
@@ -44,22 +48,16 @@ def resize(w, h):
     
     glLoadIdentity()
     gluPerspective(30.0, float(w)/h, 1.0, 100.0)
-    gluLookAt(5.0, 5.0, 5.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0)
+    gluLookAt(0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-#    glMatrixMode(GL_MODELVIEW)
 
 def v(k, l):
     def v1(rotation, preRot):
         global K, R
         nonlocal k, l
         glPushMatrix()
-        glColor3d(0.0, 1.0, 0.0)
-        glBegin(GL_LINES)
-        glVertex2d(0, 0)
-        glVertex2d(0, l)
-        glEnd()
-
         glTranslated(0, l, 0)
+
 
         if preRot == 0:
             glRotated(preRot, 0, 0, 1)
@@ -87,18 +85,14 @@ def v(k, l):
     else:
         v1(THETA, 0)
         glPopMatrix()
+
         v1(THETA, THETA2)
         glPopMatrix()
+
         v1(-THETA, -THETA2)
         glPopMatrix()
-        glColor3d(1.0, 0.0, 0.0)
-        glBegin(GL_LINES)
-        glVertex2d(-0.001, 0)
-        glVertex2d(0.001, 0)
-        glEnd()
 
 def display():
-    glClear(GL_COLOR_BUFFER_BIT)
     glFlush()
 
 def mouse(button, state, x, y):
@@ -109,9 +103,7 @@ def mouse(button, state, x, y):
             v(1, L)
         elif button == GLUT_RIGHT_BUTTON:
             K = 0
-            glClear(GL_COLOR_BUFFER_BIT)
-            glBegin(GL_LINES)
-            glEnd()
+            init()
         glFlush()
 
 
