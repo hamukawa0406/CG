@@ -9,7 +9,6 @@ WINDOW_HEIGHT = 480
 r = 0
 THETA = 25
 
-#y軸に対して回転し、枝の対象性を保つ
 THETA2 = 45
 THETA3 = 165
 THETA4 = 75
@@ -60,7 +59,7 @@ def v(k, l):
         glPushMatrix()
         glTranslated(0, l, 0)
 
-        glRotated(preRot, 0, 1, 0)    #y軸に対する回転
+        glRotated(preRot, 0, 1, 0)    
         glRotated(rotation, 1, 0, 0)
         drawBranch(l)
        
