@@ -15,6 +15,7 @@ def main():
     glutDisplayFunc(display)
     glutReshapeFunc(resize)
     glutMouseFunc(mouse)
+    glutSpecialFunc(directionKey)
     init()
     glutMainLoop()
 
@@ -45,6 +46,7 @@ def display():
 def mouse(button, state, x, y):
     winX = (x / WINDOW_WIDTH - 0.5) * 2
     winY = (y / WINDOW_HEIGHT - 0.5) * 2
+    imag = 1.2
     print("(x, y) = ", winX, winY)
     if state == GLUT_DOWN :
         if button == GLUT_LEFT_BUTTON:
@@ -52,8 +54,16 @@ def mouse(button, state, x, y):
         elif button == GLUT_RIGHT_BUTTON:
             zoom(1.2, winX, winY) 
 
+def directionKey(key, x, y):
+    if key == GLUT_KEY_UP:
+        zoom(1/imag, 0, 0)
+    elif key == GLUT_KEY_DOWN:
+        zoom(imag, 0, 0)
+
+
 def zoom(r, x, y):
     #x, y is point of mouse(-1~1). view area transfer by one fifth of each value 
     glOrtho(-r+x/5, r+x/5, -r-y/5, r-y/5, -r, r)
+    display()
 
 if __name__ == "__main__": main()
