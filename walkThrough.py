@@ -25,7 +25,7 @@ def main():
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH)
-    glutCreateWindow(b"tree")
+    glutCreateWindow(b"walk through")
     glutDisplayFunc(display)
     glutReshapeFunc(resize)
     glutKeyboardFunc(SpaceDown)
@@ -54,6 +54,9 @@ def resize(w, h):
 
     glMatrixMode(GL_MODELVIEW)
 
+def idle():
+    glutPostRedisplay()
+
 def display():
     global r, ex, ez, lightpos
 
@@ -68,7 +71,13 @@ def display():
 
     scene()
 
-    glFlush()
+    glutSwapBuffers()
+
+    r += 1
+
+    if r >= 360:
+        r = 0
+
 
 def scene():
     global red, green, blue, yellow, ground
@@ -113,12 +122,13 @@ def scene():
 
 def mouse(button, state, x, y):
     global K, L
-    if state == GLUT_DOWN :
-        if button == GLUT_LEFT_BUTTON:
-            K += 1
-        elif button == GLUT_RIGHT_BUTTON:
-            K = 0
-            init()
+    print("(x, y)= ", x, " ", y)
+    if button == GLUT_LEFT_BUTTON:
+        if state == GLUT_DOWN:
+            glutIdleFunc(idle)
+        
+        elif state == GLUT_UP:
+            glutIdleFunc(0)
 
 def SpaceDown(key, x, y):
     if(key == b' '):
