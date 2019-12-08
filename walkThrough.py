@@ -6,6 +6,7 @@ import sys
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
 
+dirc = 0.1
 r = 0.0
 ex = 0.0
 ez = 0.0
@@ -58,7 +59,7 @@ def idle():
     glutPostRedisplay()
 
 def display():
-    global r, ex, ez, lightpos
+    global dirc, r, ex, ez, lightpos
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -73,7 +74,7 @@ def display():
 
     glutSwapBuffers()
 
-    r += 1
+    r += dirc
 
     if r >= 360:
         r = 0
@@ -119,15 +120,32 @@ def scene():
 
 
 
+preX = 0.1
+preY = 0.1
+x0 = 0
+y0 = 0
 
 def mouse(button, state, x, y):
-    global K, L
-    print("(x, y)= ", x, " ", y)
+    global K, L, preX, preY, x0, y0
+    global ex, ez, r, dirc
+    X = 2*(x / WINDOW_WIDTH - 0.5)
+    Y = -2*(y / WINDOW_HEIGHT -0.5)
+    print("(ex, ez)= ", ex, " ", ez)
     if button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
+            print(" ")
+            x0 = X
+            y0 = Y
             glutIdleFunc(idle)
         
         elif state == GLUT_UP:
+            print(" ")
+            X = X -x0
+            Y = Y -y0
+            if preX*X < 0:
+                dirc = -dirc
+            ez = ez + Y
+            preX = X
             glutIdleFunc(0)
 
 def SpaceDown(key, x, y):
