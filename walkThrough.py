@@ -8,14 +8,15 @@ WINDOW_HEIGHT = 480
 
 dirc = 0.1
 r = 0.0
-ex = 0.0
-ez = 0.0
+ex = 3.0
+ez = -2.0
 lightpos = [3.0, 4.0, 5.0, 1.0]
 
 red = [ 0.8, 0.2, 0.2, 1.0 ]
 green = [ 0.2, 0.8, 0.2, 1.0 ]
 blue = [ 0.2, 0.2, 0.8, 1.0 ]
 yellow = [ 0.8, 0.8, 0.2, 1.0 ]
+
 ground = [
     [ 0.6, 0.6, 0.6, 1.0 ],
     [ 0.3, 0.3, 0.3, 1.0 ]
@@ -90,22 +91,30 @@ def scene():
     glPopMatrix() 
 
     glPushMatrix() 
-    glTranslated(0.0, 0.0, 3.0) 
+    glTranslated(-1.0, 0.0, -3.0) 
     glMaterialfv(GL_FRONT, GL_DIFFUSE, green) 
     glutSolidCube(1.0) 
     glPopMatrix() 
 
     glPushMatrix() 
-    glTranslated(-3.0, 0.0, 0.0) 
+    glTranslated(1.0, 0.0, -2.0) 
     glMaterialfv(GL_FRONT, GL_DIFFUSE, blue) 
     glutSolidCube(1.0) 
     glPopMatrix() 
 
     glPushMatrix() 
-    glTranslated(3.0, 0.0, 0.0) 
+    glTranslated(1.0, 0.0, -3.0) 
     glMaterialfv(GL_FRONT, GL_DIFFUSE, yellow) 
     glutSolidCube(1.0) 
     glPopMatrix() 
+
+    '''
+    glPushMatrix()
+    glTranslated(0.1, 0.0, -2.0)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, yellow)
+    glutSolidSphere(0.3, 20, 20)
+    glPopMatrix()
+    '''
 
     glBegin(GL_QUADS) 
     glNormal3d(0.0, 1.0, 0.0) 
