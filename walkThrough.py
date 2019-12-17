@@ -2,6 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import sys
+from math import *
 
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
@@ -17,7 +18,7 @@ point = [[0 for i in range(2)] for j in range (100)]
 pointnum = 0
 rubberband = 0
 
-t = 0.3
+t = 0.05
 lightpos = [3.0, 4.0, 5.0, 1.0]
 
 red = [ 0.8, 0.2, 0.2, 1.0 ]
@@ -73,7 +74,6 @@ def display():
     global dirc, r, ex, ez, lightpos
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
-    global ex, ez, r, dirc
  
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -81,13 +81,14 @@ def display():
 
     V = [savepoint[0] - x0, savepoint[1] - y0]
     P2 = [V[0]*t + ex, V[1]*t + ez]
-    ez = P2[1]
-    r += P2[0]
+    r = P2[0]
     print("x0 =", x0)
-    print("r= ", str(r))
+    print("P2[0] ", P2[0])
 
-    glRotated(float(r*10), 0.0, 1.0, 0.0)
-    glTranslated(ex, 0.0, ez)
+    glRotated(float(r), 0.0, 1.0, 0.0)
+    ez = P2[1]
+    ex = P2[0]
+    glTranslated(-ex, 0.0, ez)
 
     glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
 
@@ -229,7 +230,7 @@ def mouse(button, state, x, y):
             print("savePoint", savepoint[1])
             savepoint[0] = X
             savepoint[1] = Y
-            r = 0
+            #r = 0
             preX = X
             rubberband = 0
             glutIdleFunc(0)
