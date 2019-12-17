@@ -18,7 +18,7 @@ point = [[0 for i in range(2)] for j in range (100)]
 pointnum = 0
 rubberband = 0
 
-t = 0.05
+t = 1
 lightpos = [3.0, 4.0, 5.0, 1.0]
 
 red = [ 0.8, 0.2, 0.2, 1.0 ]
@@ -81,20 +81,23 @@ def display():
 
     V = [savepoint[0] - x0, savepoint[1] - y0]
     P2 = [V[0]*t + ex, V[1]*t + ez]
-    r = P2[0]
-    print("x0 =", x0)
-    print("P2[0] ", P2[0])
+    r = 10*V[0]*t+r
+    print(V)
 
     glRotated(float(r), 0.0, 1.0, 0.0)
-    ez = P2[1]
-    ex = P2[0]
+    ez = V[1]*cos(r*pi/180)*t + ez
+    ex = V[1]*sin(r*pi/180)*t + ex
+
     glTranslated(-ex, 0.0, ez)
+
+    print("ex ez ", ex, ez)
 
     glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
 
     scene()
     glutSwapBuffers()
 
+    print("r = ", r)
 
     if r >= 360:
         r = 0
@@ -215,7 +218,6 @@ def mouse(button, state, x, y):
     X = 2*(x / WINDOW_WIDTH - 0.5)
     Y = -2*(y / WINDOW_HEIGHT - 0.5)
     
-    print("(ex, ez)= ", ex, " ", ez)
     if button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
             print(" ")
@@ -262,12 +264,31 @@ def motion(x, y):
     
 
 def SpaceDown(key, x, y):
-    if(key == b' '):
-        glutIdleFunc(idle)
+    global X, Y, V, savepoint, x0, y0
+    v = 0.3
+    if(key == b'w'):
+        y0 = 0
+        savepoint[1] = v
+    elif key == b'a':
+        x0 = 0
+        savepoint[0] = -v
+    elif key == b's':
+        y0 = 0
+        savepoint[1] = -v
+    elif key == b'd':
+        x0 = 0
+        savepoint[0] = v
+    glutIdleFunc(idle)
+    
+
 
 def SpaceUp(key, x, y):
-    if(key == b' '):
-        glutIdleFunc(0)
+    global V
+    if key == b'w' or key == b's':
+        savepoint[1] = 0.0
+    elif key == b'a' or key == b'd':
+        savepoint[0] = 0.0
+    glutIdleFunc(0)
 
 
 
