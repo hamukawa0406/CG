@@ -115,6 +115,8 @@ def mouse(button, state, x, y):
 def SpaceDown(key, x, y):
     if(key == b' '):
         glutIdleFunc(idle)
+    else: 
+        print(str(key))
 
 def SpaceUp(key, x, y):
     if(key == b' '):
