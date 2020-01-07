@@ -92,6 +92,7 @@ def display():
     gluLookAt(5.0, 5.0, 5.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0)
 
     glRotated(float(r), 0.0, 1.0, 0.0)
+    glTranslated(0, 2, 0)
 
     drawBranch(L)
 
@@ -115,6 +116,8 @@ def mouse(button, state, x, y):
 def SpaceDown(key, x, y):
     if(key == b' '):
         glutIdleFunc(idle)
+    else: 
+        print(str(key))
 
 def SpaceUp(key, x, y):
     if(key == b' '):

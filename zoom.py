@@ -55,10 +55,13 @@ def mouse(button, state, x, y):
             zoom(1.2, winX, winY) 
 
 def directionKey(key, x, y):
+    imag = 1.2
     if key == GLUT_KEY_UP:
         zoom(1/imag, 0, 0)
     elif key == GLUT_KEY_DOWN:
         zoom(imag, 0, 0)
+    else:
+        print(key)
 
 
 def zoom(r, x, y):
