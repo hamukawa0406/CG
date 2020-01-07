@@ -3,9 +3,12 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import sys
 from math import *
+import time
 
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
+
+FIELD_WIDTH = 30
 
 dirc = 0.1
 r = 0.0
@@ -18,7 +21,7 @@ point = [[0 for i in range(2)] for j in range (100)]
 pointnum = 0
 rubberband = 0
 
-t = 1
+t = 2
 lightpos = [3.0, 4.0, 5.0, 1.0]
 
 red = [ 0.8, 0.2, 0.2, 1.0 ]
@@ -32,6 +35,8 @@ ground = [
 ]
 
 def main():
+    global t
+    #t = time.time()
     glutInitWindowPosition(100, 200)
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
     glutInit(sys.argv)
@@ -74,10 +79,12 @@ def display():
     global dirc, r, ex, ez, lightpos
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
- 
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glLoadIdentity()
+
+    #t = time.time() - t
 
     V = [savepoint[0] - x0, savepoint[1] - y0]
     P2 = [V[0]*t + ex, V[1]*t + ez]
@@ -105,6 +112,7 @@ def display():
 
 def scene():
     global red, green, blue, yellow, ground
+    global FIELD_WIDTH
 
     glPushMatrix() 
     glTranslated(-1.0, 0.0, -3.0) 
@@ -196,8 +204,8 @@ def scene():
     '''
     glBegin(GL_QUADS) 
     glNormal3d(0.0, 1.0, 0.0) 
-    for j in range(-5, 5):
-        for i in range(-5, 5):
+    for j in range(-FIELD_WIDTH, FIELD_WIDTH):
+        for i in range(-FIELD_WIDTH, FIELD_WIDTH):
             glMaterialfv(GL_FRONT, GL_DIFFUSE, ground[(i + j) & 1]) 
             glVertex3d(i, -0.5, j) 
             glVertex3d(i, -0.5, j + 1) 
