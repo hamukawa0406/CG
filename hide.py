@@ -6,6 +6,7 @@ from math import *
 import time
 import numpy as np
 import copy
+import csv
 
 
 WINDOW_WIDTH = 640
@@ -15,8 +16,8 @@ FIELD_WIDTH = 30
 
 dirc = 0.1
 r = 0.0
-ex = 0.0
-ez = 0.0
+ex = 5.0
+ez = 5.0
 P2 = [0.0, 0.0]
 V = [0.0, 0.0]
 
@@ -138,8 +139,22 @@ class TCube():
         self.axisZ = mRot.ret*np.matrix([[0], [0], [1], [1]])
         self.axisZ = self.axisZ[0:3]
 
+"""
+                  z
+                  ^
+                  |
+                  |
+                  |
+                  |
+                  |
+                  |
+x<-----------------
+
+
+"""
 ey = 0
 blockList = []
+sphList = []
 blockPos = [
     [[5.0],  [0.0], [5.0]],
     [[6.0],  [0.0], [5.0]],
@@ -221,8 +236,7 @@ blockPos = [
 
 for  pos in blockPos:
     blockList.append(TCube(np.array(pos), np.array([[0.5], [0.5], [0.5]]), np.array([[0.0], [0.0], [0.0]])))
-myP = Sphere(np.array([[ex], [ey], [ez]]), 0.2)
-
+myP = Sphere(np.array([[ex], [ey], [ez]]), 0.5)
 
 bHit = False
     
@@ -433,8 +447,9 @@ def display():
 
     r = 10*V[0]*t+r
     
+    gluLookAt(0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0)
 
-    glRotated(float(r), 0.0, 1.0, 0.0)
+    #glRotated(float(r), 0.0, 1.0, 0.0)
     for block in blockList:
         if isCollideOBB2Sph(myP, block) is True:
             bHit = True
@@ -459,7 +474,7 @@ def display():
     myP.pos[0,0] = ex
     myP.pos[2,0] = -ez
 
-    glTranslated(-ex, 0.0, ez)
+    #glTranslated(-ex, 0.0, ez)
 
     glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
 
@@ -474,7 +489,7 @@ def display():
 def scene():
     global red, green, blue, yellow, ground
     global FIELD_WIDTH
-    global bHit , blockList
+    global bHit , blockList, sphList
 
     if bHit is True:
         color = 0
@@ -483,6 +498,8 @@ def scene():
 
     for cube in  blockList:
         DrawCube(cube.pos, cube.radius, cube.rot, color)
+    for sph in sphList:
+        DrawSphere(sph)
 
     glBegin(GL_QUADS) 
     glNormal3d(0.0, 1.0, 0.0) 
@@ -495,6 +512,17 @@ def scene():
             glVertex3d(i + 1, -0.5, j) 
     glEnd()
 
+def DrawSphere(sph):
+    global red, green, white
+    
+    glPushMatrix()
+    glTranslatef(sph.pos[0,0], sph.pos[1,0], sph.pos[2,0])
+    glScaled(sph.radius, sph.radius, sph.radius)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, green)
+    glutSolidSphere(1, 10, 10)
+    glPopMatrix()
+
+
 
 preX = 0.1
 preY = 0.1
@@ -504,12 +532,30 @@ y0 = 0
 def mouse(button, state, x, y):
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
-    global ex, ez, r, dirc
+    global ex, ez, r, dirc, sphList
     X = 2*(x / WINDOW_WIDTH - 0.5)
     Y = -2*(y / WINDOW_HEIGHT - 0.5)
-    
+
+
     if button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
+            if len(sphList) >= 3:
+                pass
+            else:
+                modul = [0]*16
+                proj = [0]*16
+                view = [0]*4
+
+                glGetDoublev(GL_MODELVIEW_MATRIX, modul)
+                glGetDoublev(GL_PROJECTION_MATRIX, proj)
+                glGetIntegerv(GL_VIEWPORT, view)
+                cood = 0.5*np.array(gluUnProject(x, WINDOW_HEIGHT-y, 1, glGetDoublev(GL_MODELVIEW_MATRIX, modul),\
+                    glGetDoublev(GL_PROJECTION_MATRIX, proj), glGetIntegerv(GL_VIEWPORT, view), ))
+                #print(glGetDoublev(GL_MODELVIEW_MATRIX, modul))
+                cood[1] = 0.0
+                cood = cood.reshape(-1,1)
+                sphList.append(Sphere(cood, 0.2))
+
             x0 = X
             y0 = Y
             #savepoint[0] = X
@@ -552,7 +598,7 @@ def motion(x, y):
 
 def SpaceDown(key, x, y):
     global X, Y, V, savepoint, x0, y0
-    global bHit, myP,blockList
+    global bHit, myP,blockList, sphList
     v = 0.3
     if(key == b'w'):
         y0 = 0
@@ -569,6 +615,16 @@ def SpaceDown(key, x, y):
     elif key == b'd':
         x0 = 0
         savepoint[0] = v
+    elif key == b'b':
+        if sphList:
+            sphList.pop()
+    elif key == b' ':
+        with open('sphPt.csv', 'w') as f:
+            writer = csv.writer(f)
+            for sph in sphList:
+                writer.writerow(sph.pos)
+    else:
+        print(key)
     
     glutIdleFunc(idle)
     
