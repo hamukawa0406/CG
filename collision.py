@@ -117,9 +117,9 @@ class TCube():
         self.pos = pos 
         self.radius = rad 
         self.rot = rot 
-        self.axisX = np.array([[0.0], [0.0], [0.0]])
-        self.axisY = np.array([[0.0], [0.0], [0.0]])
-        self.axisZ = np.array([[0.0], [0.0], [0.0]])
+        self.axisX = np.array([[1.0], [0.0], [0.0]])
+        self.axisY = np.array([[0.0], [1.0], [0.0]])
+        self.axisZ = np.array([[0.0], [0.0], [1.0]])
     def getMinVec3(self):
         return self.pos - self.radius
 
@@ -137,8 +137,8 @@ class TCube():
         self.axisZ = self.axisZ[0:3]
 
 ey = 0
-myC = TCube(np.array([[-1.0], [0.0], [-3.0]]), np.array([[0.5], [0.5], [0.4]]), np.array([[0.0], [0.0], [0.0]]))
-tarC = TCube(np.array([[0.0], [0.0], [-3.0]]), np.array([[0.5], [0.5], [0.4]]), np.array([[0.0], [0.0], [0.0]]))
+myC = TCube(np.array([[-1.0], [0.0], [-3.0]]), np.array([[0.5], [0.5], [0.4]]), np.array([[45.0], [0.0], [0.0]]))
+tarC = TCube(np.array([[0.0], [0.0], [-3.0]]), np.array([[0.5], [0.5], [0.4]]), np.array([[0.0], [20.0], [0.0]]))
 myP = Sphere(np.array([[ex], [ey], [ez]]), 0.4)
 bHit = False
     
@@ -246,33 +246,38 @@ def DrawCube(pos, radius, rot, color):
         c = green 
     else:
         c = white 
-    
+    print("drawPos", pos) 
     
     glPushMatrix()
-    glTranslatef(pos[0], pos[1], pos[2])
-    glRotatef(rot[2], 0, 0, 1)
-    glRotatef(rot[0], 1, 0, 0)
-    glRotatef(rot[1], 0, 1, 0)
-    glScaled(radius[0]*2, radius[1]*2, radius[2]*2)
+    glTranslatef(pos[0,0], pos[1,0], pos[2,0])
+    glRotatef(rot[2,0], 0, 0, 1)
+    glRotatef(rot[0,0], 1, 0, 0)
+    glRotatef(rot[1,0], 0, 1, 0)
+    glScaled(radius[0,0]*2, radius[1,0]*2, radius[2,0]*2)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, c)
     glutSolidCube(1)
     glPopMatrix()
 
 def calcLenOBB2Pt(obb, pos):
     Vec = np.array([[0],[0],[0]])   # 最終的に長さを求めるベクトル
-
     # 各軸についてはみ出た部分のベクトルを算出
     lit = np.array([obb.axisX, obb.axisY, obb.axisZ])
     for i in range(3):
         L = obb.radius[i,0]
+        print("L ", L)
         if( L <= 0 ):
              continue  # L=0は計算できない
         s = np.dot( np.ravel(pos-obb.pos), np.ravel(lit[i])) / L
         # sの値から、はみ出した部分があればそのベクトルを加算
-        print("length", s) 
-        s = np.linalg.norm(s) 
+        print("s ", s) 
+        print("ePs", pos[i,0])
+        print("obbPs", obb.pos[i, 0])
+
+        s = abs(s)
         if( s > 1):
-            Vec = Vec + (1-s)*L*lit[i,0]   # はみ出した部分のベクトル算出
+            Vec = Vec + (1-s)*L*lit[i]   # はみ出した部分のベクトル算出
+        
+        print("kyori ", np.linalg.norm(Vec))
         
     return np.linalg.norm(Vec)    # 長さを出力
 
@@ -343,9 +348,10 @@ def display():
     ex = V[1]*sin(r*pi/180)*t + ex
 
     myP.pos[0,0] = ex
-    myP.pos[2,0] = ez
+    myP.pos[2,0] = -ez
+    print("myCpt ", myC.pos)
+    print("myPpt ", myP.pos)
 
-    print(calcLenOBB2Pt(myC, myP.pos))
 
 
     glTranslated(-ex, 0.0, ez)
