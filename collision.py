@@ -106,7 +106,10 @@ class mat44():
         return mat
         
 
- 
+class Sphere():
+    def __init__(self, pos=None, rad=None):
+        self.pos = pos
+        self.radius = rad 
 
 
 class TCube():
@@ -133,9 +136,10 @@ class TCube():
         self.axisZ = mRot.ret*np.matrix([[0], [0], [1], [1]])
         self.axisZ = self.axisZ[0:3]
 
-
-myC = TCube(np.array([[-1.0], [0.0], [-3.0]]), np.array([[0.6], [0.5], [0.4]]), np.array([[45.0], [0.0], [0.0]]))
-tarC = TCube(np.array([[0.0], [0.0], [-3.0]]), np.array([[0.6], [0.5], [0.4]]), np.array([[0.0], [0.0], [0.0]]))
+ey = 0
+myC = TCube(np.array([[-1.0], [0.0], [-3.0]]), np.array([[0.5], [0.5], [0.4]]), np.array([[0.0], [0.0], [0.0]]))
+tarC = TCube(np.array([[0.0], [0.0], [-3.0]]), np.array([[0.5], [0.5], [0.4]]), np.array([[0.0], [0.0], [0.0]]))
+myP = Sphere(np.array([[ex], [ey], [ez]]), 0.4)
 bHit = False
     
 
@@ -210,7 +214,6 @@ def IsCollideBoxOBB(cA, cB):
 
 
 def CompareLengthOBB(cA, cB, vSep, vDistance):
-    print(np.ravel(vSep))
     dotVal = np.dot(np.ravel(vSep), vDistance.T.flatten())
     length = fabs(dotVal)
 
@@ -231,7 +234,6 @@ def CompareLengthOBB(cA, cB, vSep, vDistance):
          + fabs(dotValZ*cB.radius[2,0])
 
  
-    #print(length, lenA, lenB)
     if length > lenA + lenB:
         return False
     return True
@@ -255,6 +257,25 @@ def DrawCube(pos, radius, rot, color):
     glMaterialfv(GL_FRONT, GL_DIFFUSE, c)
     glutSolidCube(1)
     glPopMatrix()
+
+def calcLenOBB2Pt(obb, pos):
+    Vec = np.array([[0],[0],[0]])   # 最終的に長さを求めるベクトル
+
+    # 各軸についてはみ出た部分のベクトルを算出
+    lit = np.array([obb.axisX, obb.axisY, obb.axisZ])
+    for i in range(3):
+        L = obb.radius[i,0]
+        if( L <= 0 ):
+             continue  # L=0は計算できない
+        s = np.dot( np.ravel(pos-obb.pos), np.ravel(lit[i])) / L
+        # sの値から、はみ出した部分があればそのベクトルを加算
+        print("length", s) 
+        s = np.linalg.norm(s) 
+        if( s > 1):
+            Vec = Vec + (1-s)*L*lit[i,0]   # はみ出した部分のベクトル算出
+        
+    return np.linalg.norm(Vec)    # 長さを出力
+
 
     
 
@@ -303,6 +324,7 @@ def display():
     global dirc, r, ex, ez, lightpos
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
+    global myP, myC, tarC
 
 
 
@@ -319,6 +341,12 @@ def display():
     glRotated(float(r), 0.0, 1.0, 0.0)
     ez = V[1]*cos(r*pi/180)*t + ez
     ex = V[1]*sin(r*pi/180)*t + ex
+
+    myP.pos[0,0] = ex
+    myP.pos[2,0] = ez
+
+    print(calcLenOBB2Pt(myC, myP.pos))
+
 
     glTranslated(-ex, 0.0, ez)
 
