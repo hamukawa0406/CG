@@ -6,6 +6,7 @@ from math import *
 import time
 import numpy as np
 import copy
+import csv
 
 
 WINDOW_WIDTH = 640
@@ -111,6 +112,10 @@ class Sphere():
         self.pos = pos
         self.radius = rad 
         
+class Seek():
+    def __init__(self, sph=None):
+        self.sph = sph
+        self.hit = False
 
 
 
@@ -140,6 +145,7 @@ class TCube():
 
 ey = 0
 blockList = []
+sphPtList = []
 blockPos = [
     [[5.0],  [0.0], [5.0]],
     [[6.0],  [0.0], [5.0]],
@@ -221,7 +227,7 @@ blockPos = [
 
 for  pos in blockPos:
     blockList.append(TCube(np.array(pos), np.array([[0.5], [0.5], [0.5]]), np.array([[0.0], [0.0], [0.0]])))
-myP = Sphere(np.array([[ex], [ey], [ez]]), 0.2)
+myP = Sphere(np.array([[ex], [ey], [ez]]), 0.3)
 
 
 bHit = False
@@ -342,17 +348,19 @@ def DrawCube(pos, radius, rot, color):
     glPopMatrix()
 
 def isCollideOBB2Sph(sph, obb):
-    global dis, colCube
+    global dis, hitObP, colCube
     dis = calcLenOBB2Pt(obb, sph.pos)
     if dis <= sph.radius:
         dis = sph.radius - dis
         colCube = obb
+        hitObP = obb.pos
         return True
     else:
         return False
 
 dis = 0    
 colCube =  None
+hitObP = None
 
 def calcLenOBB2Pt(obb, pos):
     Vec = np.array([[0],[0],[0]])   # 最終的に長さを求めるベクトル
@@ -372,9 +380,16 @@ def calcLenOBB2Pt(obb, pos):
         
     return np.linalg.norm(Vec)    # 長さを出力
 
+def isCollideSph2Sph(sphA, sphB):
+    global hitObP, dis
+    length = np.linalg.norm(np.ravel(sphB.pos-sphA.pos))
 
-
-    
+    if length <= sphA.radius + sphB.radius:
+        dis = sphA.radius + sphB.radius - length
+        hitObP = sphB.pos
+        return True
+    else:
+        return False
 
 def main():
     global t
@@ -395,12 +410,26 @@ def main():
 
 
 def init():
+    global sphPtList
+    with open('sphPt.csv', 'r') as f:
+        reader = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
+        for row in reader:
+            if not len(row):
+                pass
+            else:
+                ar = np.array(row)
+                ar = ar.reshape(-1,1)
+                sp = Sphere(ar, 0.2)
+                sk = Seek(sp)
+                sphPtList.append(sk)
+
     glClearColor(1.0, 1.0, 1.0, 1.0)
     glLineWidth(2.0)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_CULL_FACE)
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
+
 
 def resize(w, h):
     glViewport(0, 0, w, h)
@@ -420,7 +449,7 @@ def display():
     global dirc, r, ex, ez, lightpos
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
-    global myP, colCube
+    global myP, colCube, hitObP
     global bHit, dis
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -435,17 +464,27 @@ def display():
     
 
     glRotated(float(r), 0.0, 1.0, 0.0)
+    print("my p ", myP.pos)
     for block in blockList:
         if isCollideOBB2Sph(myP, block) is True:
             bHit = True
             break
     else:
-        bHit = False
+        for sphs in sphPtList:
+            if isCollideSph2Sph(myP, sphs.sph):
+                print("hit Sphere ", sphs.sph.pos)
+                bHit = True
+                sphs.hit = True
+                #sphPtList.remove(sphs)
+                break
+        else:
+            bHit = False
 
     vec = np.array([V[1]*sin(r*pi/180)*t, 0, V[1]*cos(r*pi/180)*t])
+    print("vec", vec)
 
     if(bHit is True):
-        dirct = np.dot(vec, np.ravel(colCube.pos))
+        dirct = np.dot(vec, np.ravel(hitObP))
         if dirct >= 0:
             ez += -1.1*dis*cos(r*pi/180)*t
             ex += 1.1*dis*cos(r*pi/180)*t
@@ -474,7 +513,7 @@ def display():
 def scene():
     global red, green, blue, yellow, ground
     global FIELD_WIDTH
-    global bHit , blockList
+    global bHit , blockList, sphPtList
 
     if bHit is True:
         color = 0
@@ -483,6 +522,8 @@ def scene():
 
     for cube in  blockList:
         DrawCube(cube.pos, cube.radius, cube.rot, color)
+    for sphs in sphPtList:
+        DrawSphere(sphs.sph)
 
     glBegin(GL_QUADS) 
     glNormal3d(0.0, 1.0, 0.0) 
@@ -494,6 +535,16 @@ def scene():
             glVertex3d(i + 1, -0.5, j + 1) 
             glVertex3d(i + 1, -0.5, j) 
     glEnd()
+
+def DrawSphere(sph):
+    global red, green, white
+    
+    glPushMatrix()
+    glTranslatef(sph.pos[0,0], sph.pos[1,0], sph.pos[2,0])
+    glScaled(sph.radius, sph.radius, sph.radius)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, green)
+    glutSolidSphere(1, 10, 10)
+    glPopMatrix()
 
 
 preX = 0.1

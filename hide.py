@@ -619,10 +619,18 @@ def SpaceDown(key, x, y):
         if sphList:
             sphList.pop()
     elif key == b' ':
+        saveList = []
+        print(sphList)
+        for sph in sphList:
+            saveList.append(np.ravel(sph.pos).tolist())
+        print(saveList)
         with open('sphPt.csv', 'w') as f:
+            pass
+        with open('sphPt.csv', 'a') as f:
             writer = csv.writer(f)
-            for sph in sphList:
-                writer.writerow(sph.pos)
+            writer.writerows(saveList)
+            print(saveList)
+
     else:
         print(key)
     
