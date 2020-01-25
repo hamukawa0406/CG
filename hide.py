@@ -26,7 +26,7 @@ pointnum = 0
 rubberband = 0
 
 t = 2
-lightpos = [0.0, 10.0, 0.0, 1.0]
+lightpos = [0.0, 50.0, 0.0, 1.0]
 
 red = [ 0.8, 0.2, 0.2, 1.0 ]
 green = [ 0.2, 0.8, 0.2, 1.0 ]
@@ -369,22 +369,20 @@ dis = 0
 colCube =  None
 
 def calcLenOBB2Pt(obb, pos):
-    Vec = np.array([[0],[0],[0]])   # 最終的に長さを求めるベクトル
-    # 各軸についてはみ出た部分のベクトルを算出
+    Vec = np.array([[0],[0],[0]])
     lit = np.array([obb.axisX, obb.axisY, obb.axisZ])
     for i in range(3):
         L = obb.radius[i,0]
         if( L <= 0 ):
-             continue  # L=0は計算できない
+             continue 
         s = np.dot( np.ravel(pos-obb.pos), np.ravel(lit[i])) / L
-        # sの値から、はみ出した部分があればそのベクトルを加算
 
         s = abs(s)
         if( s > 1):
-            Vec = Vec + (1-s)*L*lit[i]   # はみ出した部分のベクトル算出
+            Vec = Vec + (1-s)*L*lit[i]  
         
         
-    return np.linalg.norm(Vec)    # 長さを出力
+    return np.linalg.norm(Vec) 
 
 
 
@@ -495,6 +493,8 @@ def scene():
         color = 0
     else:
         color = 2
+    
+    DrawQuadrangle()
 
     for cube in  blockList:
         DrawCube(cube.pos, cube.radius, cube.rot, color)
@@ -510,6 +510,19 @@ def scene():
             glVertex3d(i, -0.5, j + 1) 
             glVertex3d(i + 1, -0.5, j + 1) 
             glVertex3d(i + 1, -0.5, j) 
+    glEnd()
+
+def DrawQuadrangle():
+    depth = 10
+    glBegin(GL_POLYGON)
+    glColor4f(1.0, 0.0, 1.0, 1.0)
+    glVertex3d(10 , depth, 0)
+    glColor4f(1.0, 0.0, 1.0, 1.0)
+    glVertex3d(-10 , depth, 0)
+    glColor4f(1.0, 0.0, 1.0, 1.0)
+    glVertex3d(-10 , depth, 10)
+    glColor4f(1.0, 0.0, 1.0, 1.0)
+    glVertex3d(10 , depth, 10)
     glEnd()
 
 def DrawSphere(sph):
@@ -551,14 +564,14 @@ def mouse(button, state, x, y):
                 glGetIntegerv(GL_VIEWPORT, view)
                 cood = 0.5*np.array(gluUnProject(x, WINDOW_HEIGHT-y, 1, glGetDoublev(GL_MODELVIEW_MATRIX, modul),\
                     glGetDoublev(GL_PROJECTION_MATRIX, proj), glGetIntegerv(GL_VIEWPORT, view), ))
-                #print(glGetDoublev(GL_MODELVIEW_MATRIX, modul))
+                
                 cood[1] = 0.0
                 cood = cood.reshape(-1,1)
                 sphList.append(Sphere(cood, 0.2))
 
             x0 = X
             y0 = Y
-            #savepoint[0] = X
+            savepoint[0] = X
             savepoint[1] = Y
             glutIdleFunc(idle)
             display()

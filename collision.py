@@ -27,6 +27,11 @@ rubberband = 0
 
 t = 2
 lightpos = [0.0, 10.0, 0.0, 1.0]
+lightpos2 = [5.0, 10.0, 5.0, 1.0]
+lightpos3 = [-5.0, 10.0, 5.0, 1.0]
+lightpos4 = [5.0, 10.0, -5.0, 1.0]
+lightpos5 = [-5.0, 10.0, -5.0, 1.0]
+
 
 red = [ 0.8, 0.2, 0.2, 1.0 ]
 green = [ 0.2, 0.8, 0.2, 1.0 ]
@@ -226,8 +231,9 @@ blockPos = [
 ]
 
 for  pos in blockPos:
-    blockList.append(TCube(np.array(pos), np.array([[0.5], [0.5], [0.5]]), np.array([[0.0], [0.0], [0.0]])))
-myP = Sphere(np.array([[ex], [ey], [ez]]), 0.3)
+    blockList.append(TCube(np.array(pos), np.array([[0.5], [5.0], [0.5]]), np.array([[0.0], [0.0], [0.0]])))
+myP = Sphere(np.array([[ex], [ey], [ez]]), 0.1)
+preP = myP
 
 
 bHit = False
@@ -429,6 +435,10 @@ def init():
     glEnable(GL_CULL_FACE)
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
+    glEnable(GL_LIGHT1)
+    glEnable(GL_LIGHT2)
+    glEnable(GL_LIGHT3)
+    glEnable(GL_LIGHT4)
 
 
 def resize(w, h):
@@ -449,8 +459,13 @@ def display():
     global dirc, r, ex, ez, lightpos
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
-    global myP, colCube, hitObP
+    global myP, colCube, hitObP, preP
     global bHit, dis
+
+    print("**********************")
+    print(preP.pos)
+    print(myP.pos)
+    print("------------------")
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -462,45 +477,77 @@ def display():
 
     r = 10*V[0]*t+r
     
-
-    glRotated(float(r), 0.0, 1.0, 0.0)
+    gluLookAt(0.0, 0.5, 2.0, 0.0, 0.2, 0.0, 0.0, 1.0, 0.0)
+    glRotated(float(r), 0.0, 5.0, 0.0)
     print("my p ", myP.pos)
+
+
+    myP.pos[0,0] = V[1]*sin(r*pi/180)*t + ex
+    myP.pos[2,0] = -(V[1]*cos(r*pi/180)*t + ez)
+
     for block in blockList:
         if isCollideOBB2Sph(myP, block) is True:
             bHit = True
             break
     else:
+        hitNum = 0
         for sphs in sphPtList:
             if isCollideSph2Sph(myP, sphs.sph):
+                hitNum += sphs.hit
                 print("hit Sphere ", sphs.sph.pos)
                 bHit = True
                 sphs.hit = True
                 #sphPtList.remove(sphs)
+                print("hitnum ", hitNum)
                 break
         else:
             bHit = False
-
-    vec = np.array([V[1]*sin(r*pi/180)*t, 0, V[1]*cos(r*pi/180)*t])
-    print("vec", vec)
+    
+    for sphs in sphPtList:
+        if sphs.hit is False:
+            break
+    else:
+        print("CLEAR!!!!")
+        print("Congraturations!!!")
+        exit()
+    
+ 
+    #vec = np.array([V[1]*sin(r*pi/180)*t, 0, V[1]*cos(r*pi/180)*t])
+    #print("vec", vec)
 
     if(bHit is True):
-        dirct = np.dot(vec, np.ravel(hitObP))
+        pass
+ #       dirct = np.dot(vec, np.ravel(hitObP))
+        """
         if dirct >= 0:
             ez += -1.1*dis*cos(r*pi/180)*t
             ex += 1.1*dis*cos(r*pi/180)*t
         else:
             ez += 1.1*dis*cos(r*pi/180)*t
             ex += -1.1*dis*cos(r*pi/180)*t
+        """
+        #ex = preP.pos[0,0]
+        #ez = preP.pos[2,0]
     else:
-        ez = V[1]*cos(r*pi/180)*t + ez
-        ex = V[1]*sin(r*pi/180)*t + ex
+        ex = myP.pos[0,0]
+        ez = -myP.pos[2,0]
+#        ez = V[1]*cos(r*pi/180)*t + ez
+#        ex = V[1]*sin(r*pi/180)*t + ex
     
-    myP.pos[0,0] = ex
-    myP.pos[2,0] = -ez
+#    myP.pos[0,0] = ex
+#    myP.pos[2,0] = -ez
+
+    if bHit is False:
+        preP = myP
+
 
     glTranslated(-ex, 0.0, ez)
 
     glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
+    glLightfv(GL_LIGHT1, GL_POSITION, lightpos2)
+    glLightfv(GL_LIGHT2, GL_POSITION, lightpos3)
+    glLightfv(GL_LIGHT3, GL_POSITION, lightpos4)
+    glLightfv(GL_LIGHT4, GL_POSITION, lightpos5)
 
     scene()
     glutSwapBuffers()
@@ -513,17 +560,19 @@ def display():
 def scene():
     global red, green, blue, yellow, ground
     global FIELD_WIDTH
-    global bHit , blockList, sphPtList
+    global bHit , blockList, sphPtList, myP
 
     if bHit is True:
         color = 0
     else:
         color = 2
 
+    DrawSphere(myP, False)
     for cube in  blockList:
         DrawCube(cube.pos, cube.radius, cube.rot, color)
     for sphs in sphPtList:
-        DrawSphere(sphs.sph)
+        DrawSphere(sphs.sph, sphs.hit)
+    
 
     glBegin(GL_QUADS) 
     glNormal3d(0.0, 1.0, 0.0) 
@@ -536,13 +585,17 @@ def scene():
             glVertex3d(i + 1, -0.5, j) 
     glEnd()
 
-def DrawSphere(sph):
-    global red, green, white
+def DrawSphere(sph, hit):
+    global red, green, yellow, white
+    if hit is True:
+        color = yellow
+    else:
+        color = green
     
     glPushMatrix()
     glTranslatef(sph.pos[0,0], sph.pos[1,0], sph.pos[2,0])
     glScaled(sph.radius, sph.radius, sph.radius)
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, green)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
     glutSolidSphere(1, 10, 10)
     glPopMatrix()
 
