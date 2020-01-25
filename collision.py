@@ -411,6 +411,7 @@ def main():
     glutKeyboardUpFunc(SpaceUp)
     glutMouseFunc(mouse)
     glutMotionFunc(motion)
+    #glutPassiveMotionFunc(motion)
     init()
     glutMainLoop()
 
@@ -455,17 +456,22 @@ def resize(w, h):
 def idle():
     glutPostRedisplay()
 
+vx = 0
+
 def display():
     global dirc, r, ex, ez, lightpos
     global K, L, preX, preY, x0, y0
     global P2, e, V, savepoint, t
     global myP, colCube, hitObP, preP
     global bHit, dis
+    global vx
 
+    """
     print("**********************")
     print(preP.pos)
     print(myP.pos)
     print("------------------")
+    """
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -473,17 +479,18 @@ def display():
 
     #t = time.time() - t
 
+    #V = [savepoint[0] - x0, savepoint[1] - y0]
     V = [savepoint[0] - x0, savepoint[1] - y0]
+    print(V)
 
-    r = 10*V[0]*t+r
+    r += 5*V[0]*t
     
     gluLookAt(0.0, 0.5, 2.0, 0.0, 0.2, 0.0, 0.0, 1.0, 0.0)
     glRotated(float(r), 0.0, 5.0, 0.0)
-    print("my p ", myP.pos)
 
 
-    myP.pos[0,0] = V[1]*sin(r*pi/180)*t + ex
-    myP.pos[2,0] = -(V[1]*cos(r*pi/180)*t + ez)
+    myP.pos[0,0] = V[1]*sin(r*pi/180)*t + ex + vx*sin(DegToRad(90+r))
+    myP.pos[2,0] = -(V[1]*cos(r*pi/180)*t + ez + vx*cos(DegToRad(90+r)))
 
     for block in blockList:
         if isCollideOBB2Sph(myP, block) is True:
@@ -494,11 +501,8 @@ def display():
         for sphs in sphPtList:
             if isCollideSph2Sph(myP, sphs.sph):
                 hitNum += sphs.hit
-                print("hit Sphere ", sphs.sph.pos)
                 bHit = True
                 sphs.hit = True
-                #sphPtList.remove(sphs)
-                print("hitnum ", hitNum)
                 break
         else:
             bHit = False
@@ -615,16 +619,14 @@ def mouse(button, state, x, y):
     if button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
             x0 = X
-            y0 = Y
-            #savepoint[0] = X
-            savepoint[1] = Y
+            savepoint[0] = X
             glutIdleFunc(idle)
             display()
         
         elif state == GLUT_UP:
-            savepoint[0] = X
-            savepoint[1] = Y
             #r = 0
+            x0 = 0
+            savepoint[0] = 0
             preX = X
             rubberband = 0
             glutIdleFunc(0)
@@ -637,8 +639,8 @@ def motion(x, y):
     X = 2*(x / WINDOW_WIDTH - 0.5)
     Y = -2*(y / WINDOW_HEIGHT - 0.5)
 
-    savepoint[0] = X
-    savepoint[1] = Y
+    #savepoint[0] = (X - preX)
+    savepoint[0] =  X
 
     glEnable(GL_COLOR_LOGIC_OP)
     glLogicOp(GL_INVERT)
@@ -650,13 +652,13 @@ def motion(x, y):
     glLogicOp(GL_COPY)
     glDisable(GL_COLOR_LOGIC_OP)
 
-
     rubberband = 1
+    display()
     
 
 def SpaceDown(key, x, y):
     global X, Y, V, savepoint, x0, y0
-    global bHit, myP,blockList
+    global bHit, myP,blockList, vx
     v = 0.3
     if(key == b'w'):
         y0 = 0
@@ -665,25 +667,29 @@ def SpaceDown(key, x, y):
         else:
             savepoint[1] = v
     elif key == b'a':
-        x0 = 0
-        savepoint[0] = -v
+        #x0 = 0
+        #savepoint[0] = -v
+        vx = -v
     elif key == b's':
         y0 = 0
         savepoint[1] = -v
     elif key == b'd':
-        x0 = 0
-        savepoint[0] = v
+        #x0 = 0
+        #savepoint[0] = v
+        vx = v
     
     glutIdleFunc(idle)
     
 
 
 def SpaceUp(key, x, y):
-    global V
+    global V , vx
     if key == b'w' or key == b's':
         savepoint[1] = 0.0
+        #x0 = 0
     elif key == b'a' or key == b'd':
-        savepoint[0] = 0.0
+        #savepoint[0] = 0.0
+        vx = 0
     glutIdleFunc(0)
 
 

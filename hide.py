@@ -494,7 +494,7 @@ def scene():
     else:
         color = 2
     
-    DrawQuadrangle()
+#    DrawQuadrangle()
 
     for cube in  blockList:
         DrawCube(cube.pos, cube.radius, cube.rot, color)
@@ -511,7 +511,7 @@ def scene():
             glVertex3d(i + 1, -0.5, j + 1) 
             glVertex3d(i + 1, -0.5, j) 
     glEnd()
-
+"""
 def DrawQuadrangle():
     depth = 10
     glBegin(GL_POLYGON)
@@ -524,6 +524,7 @@ def DrawQuadrangle():
     glColor4f(1.0, 0.0, 1.0, 1.0)
     glVertex3d(10 , depth, 10)
     glEnd()
+"""
 
 def DrawSphere(sph):
     global red, green, white
