@@ -204,8 +204,13 @@ def scene():
     '''
     glBegin(GL_QUADS) 
     glNormal3d(0.0, 1.0, 0.0) 
+<<<<<<< HEAD
+    for j in range(-10, 10):
+        for i in range(-10, 10):
+=======
     for j in range(-FIELD_WIDTH, FIELD_WIDTH):
         for i in range(-FIELD_WIDTH, FIELD_WIDTH):
+>>>>>>> 96384d9bf5ca73d20200955c65fe1287c7f4923c
             glMaterialfv(GL_FRONT, GL_DIFFUSE, ground[(i + j) & 1]) 
             glVertex3d(i, -0.5, j) 
             glVertex3d(i, -0.5, j + 1) 
