@@ -44,17 +44,8 @@ ground = [
     [ 0.3, 0.3, 0.3, 1.0 ]
 ]
 
+"""
 class mat44():
-    """
-    ret = np.matrix((
-        [
-            [1.0,0.0,0.0,0.0],
-            [0.0,1.0,0.0,0.0],
-            [0.0,0.0,1.0,0.0],
-            [0.0,0.0,0.0,1.0]
-        ]
-    ))
-    """
     def __init__(self):
         self.ret = np.matrix((
             [
@@ -102,7 +93,6 @@ class mat44():
         self.ret[0:3, 3] = 0.0
         self.ret[3, 3] = 1.0
         return self.ret
-        
     def YawPitchRoll(self, y, x, z):
         mY = copy.copy(self.rotate('y', y))
         mX = copy.copy(self.rotate('x', x))
@@ -110,7 +100,7 @@ class mat44():
         mM = mZ*mX
         mat = mM*mY
         return mat
-        
+"""        
 
 class Sphere():
     def __init__(self, pos=None, rad=None):
@@ -137,7 +127,7 @@ class TCube():
 
     def getMaxVec3(self):
         return self.pos + self.radius
-
+    """
     def updateAxisAll(self):
         mRot = mat44()
         mRot.ret = mRot.YawPitchRoll(DegToRad(self.rot[0,0]), DegToRad(self.rot[1,0]), DegToRad(self.rot[2,0]))
@@ -147,6 +137,7 @@ class TCube():
         self.axisY = self.axisY[0:3]
         self.axisZ = mRot.ret*np.matrix([[0], [0], [1], [1]])
         self.axisZ = self.axisZ[0:3]
+    """
 
 ey = 0
 blockList = []
@@ -245,7 +236,7 @@ bHit = False
 def DegToRad(deg):
         return deg*pi/180
 
-
+"""
 def IsCollideBoxOBB(cA, cB):
     vDistance = cB.pos - cA.pos
 
@@ -306,9 +297,8 @@ def IsCollideBoxOBB(cA, cB):
         return False
     
     return True
-
-
-
+"""
+"""
 def CompareLengthOBB(cA, cB, vSep, vDistance):
     dotVal = np.dot(np.ravel(vSep), vDistance.T.flatten())
     length = fabs(dotVal)
@@ -333,7 +323,7 @@ def CompareLengthOBB(cA, cB, vSep, vDistance):
     if length > lenA + lenB:
         return False
     return True
-
+"""
 def DrawCube(pos, radius, rot, color):
     global red, green, white
     if color == 0:
@@ -355,11 +345,13 @@ def DrawCube(pos, radius, rot, color):
 
 def isCollideOBB2Sph(sph, obb):
     global dis, hitObP, colCube
+    global revVec
     dis = calcLenOBB2Pt(obb, sph.pos)
     if dis <= sph.radius:
         dis = sph.radius - dis
         colCube = obb
         hitObP = obb.pos
+        print(revVec)
         return True
     else:
         return False
@@ -368,26 +360,32 @@ dis = 0
 colCube =  None
 hitObP = None
 
+revVec = np.array([[0], [0], [0]])
+
 def calcLenOBB2Pt(obb, pos):
-    Vec = np.array([[0],[0],[0]])   # 最終的に長さを求めるベクトル
-    # 各軸についてはみ出た部分のベクトルを算出
+    global revVec
+    revVec = np.array([[0], [0], [0]])
+    cVec = pos - obb.pos
+    Vec = np.array([[0],[0],[0]])
     lit = np.array([obb.axisX, obb.axisY, obb.axisZ])
+    #print("cvec")
+    #print(cVec)
     for i in range(3):
         L = obb.radius[i,0]
         if( L <= 0 ):
-             continue  # L=0は計算できない
+             continue
         s = np.dot( np.ravel(pos-obb.pos), np.ravel(lit[i])) / L
-        # sの値から、はみ出した部分があればそのベクトルを加算
 
         s = abs(s)
         if( s > 1):
-            Vec = Vec + (1-s)*L*lit[i]   # はみ出した部分のベクトル算出
+            Vec = Vec + (1-s)*L*lit[i] 
+    revVec = Vec
         
-        
-    return np.linalg.norm(Vec)    # 長さを出力
+    return np.linalg.norm(Vec)  
 
 def isCollideSph2Sph(sphA, sphB):
     global hitObP, dis
+    global revVec
     length = np.linalg.norm(np.ravel(sphB.pos-sphA.pos))
 
     if length <= sphA.radius + sphB.radius:
@@ -398,8 +396,6 @@ def isCollideSph2Sph(sphA, sphB):
         return False
 
 def main():
-    global t
-    #t = time.time()
     glutInitWindowPosition(100, 200)
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
     glutInit(sys.argv)
@@ -407,17 +403,19 @@ def main():
     glutCreateWindow(b"walk through")
     glutDisplayFunc(display)
     glutReshapeFunc(resize)
-    glutKeyboardFunc(SpaceDown)
-    glutKeyboardUpFunc(SpaceUp)
+    glutKeyboardFunc(KeyDown)
+    glutKeyboardUpFunc(KeyUp)
     glutMouseFunc(mouse)
     glutMotionFunc(motion)
     #glutPassiveMotionFunc(motion)
     init()
     glutMainLoop()
 
-
+startTime = 0
 def init():
+    global startTime
     global sphPtList
+    startTime = time.time()
     with open('sphPt.csv', 'r') as f:
         reader = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
         for row in reader:
@@ -464,24 +462,18 @@ def display():
     global P2, e, V, savepoint, t
     global myP, colCube, hitObP, preP
     global bHit, dis
-    global vx
+    global vx, startTime
 
-    """
-    print("**********************")
-    print(preP.pos)
-    print(myP.pos)
-    print("------------------")
-    """
+    if time.time() - startTime >= 60:
+        print("GAME OVER")
+        exit()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glLoadIdentity()
 
-    #t = time.time() - t
-
-    #V = [savepoint[0] - x0, savepoint[1] - y0]
     V = [savepoint[0] - x0, savepoint[1] - y0]
-    print(V)
+
 
     r += 5*V[0]*t
     
@@ -516,30 +508,13 @@ def display():
         exit()
     
  
-    #vec = np.array([V[1]*sin(r*pi/180)*t, 0, V[1]*cos(r*pi/180)*t])
-    #print("vec", vec)
 
     if(bHit is True):
         pass
- #       dirct = np.dot(vec, np.ravel(hitObP))
-        """
-        if dirct >= 0:
-            ez += -1.1*dis*cos(r*pi/180)*t
-            ex += 1.1*dis*cos(r*pi/180)*t
-        else:
-            ez += 1.1*dis*cos(r*pi/180)*t
-            ex += -1.1*dis*cos(r*pi/180)*t
-        """
-        #ex = preP.pos[0,0]
-        #ez = preP.pos[2,0]
     else:
         ex = myP.pos[0,0]
         ez = -myP.pos[2,0]
-#        ez = V[1]*cos(r*pi/180)*t + ez
-#        ex = V[1]*sin(r*pi/180)*t + ex
     
-#    myP.pos[0,0] = ex
-#    myP.pos[2,0] = -ez
 
     if bHit is False:
         preP = myP
@@ -639,7 +614,6 @@ def motion(x, y):
     X = 2*(x / WINDOW_WIDTH - 0.5)
     Y = -2*(y / WINDOW_HEIGHT - 0.5)
 
-    #savepoint[0] = (X - preX)
     savepoint[0] =  X
 
     glEnable(GL_COLOR_LOGIC_OP)
@@ -656,7 +630,7 @@ def motion(x, y):
     display()
     
 
-def SpaceDown(key, x, y):
+def KeyDown(key, x, y):
     global X, Y, V, savepoint, x0, y0
     global bHit, myP,blockList, vx
     v = 0.3
@@ -667,28 +641,22 @@ def SpaceDown(key, x, y):
         else:
             savepoint[1] = v
     elif key == b'a':
-        #x0 = 0
-        #savepoint[0] = -v
         vx = -v
     elif key == b's':
         y0 = 0
         savepoint[1] = -v
     elif key == b'd':
-        #x0 = 0
-        #savepoint[0] = v
         vx = v
     
     glutIdleFunc(idle)
     
 
 
-def SpaceUp(key, x, y):
+def KeyUp(key, x, y):
     global V , vx
     if key == b'w' or key == b's':
         savepoint[1] = 0.0
-        #x0 = 0
     elif key == b'a' or key == b'd':
-        #savepoint[0] = 0.0
         vx = 0
     glutIdleFunc(0)
 
