@@ -26,15 +26,15 @@ pointnum = 0
 rubberband = 0
 
 t = 2
-lightpos = [0.0, 10.0, 0.0, 1.0]
-lightpos2 = [5.0, 10.0, 5.0, 1.0]
-lightpos3 = [-5.0, 10.0, 5.0, 1.0]
-lightpos4 = [5.0, 10.0, -5.0, 1.0]
-lightpos5 = [-5.0, 10.0, -5.0, 1.0]
+lightpos = [0.0, 100.0, 0.0, 1.0]
+lightpos2 = [15.0, 10.0, 15.0, 1.0]
+lightpos3 = [-15.0, 10.0, 15.0, 1.0]
+lightpos4 = [15.0, 10.0, -15.0, 1.0]
+lightpos5 = [-15.0, 10.0, -15.0, 1.0]
 
 
-red = [ 0.8, 0.2, 0.2, 1.0 ]
-green = [ 0.2, 0.8, 0.2, 1.0 ]
+red = [ 0.8, 0.0, 0.0, 1.0 ]
+green = [ 0.0, 0.8, 0.0, 1.0 ]
 blue = [ 0.2, 0.2, 0.8, 1.0 ]
 yellow = [ 0.8, 0.8, 0.2, 1.0 ]
 white = [0.8, 0.8, 0.8, 1.0]
@@ -43,64 +43,6 @@ ground = [
     [ 0.6, 0.6, 0.6, 1.0 ],
     [ 0.3, 0.3, 0.3, 1.0 ]
 ]
-
-"""
-class mat44():
-    def __init__(self):
-        self.ret = np.matrix((
-            [
-                [1.0,0.0,0.0,0.0],
-                [0.0,1.0,0.0,0.0],
-                [0.0,0.0,1.0,0.0],
-                [0.0,0.0,0.0,1.0]
-            ]
-        ))
-    def rotate(self, axis, rad):
-        sinA = sin(rad)
-        cosA = cos(rad)
-        if(axis == "X" or axis == "x"):
-            self.ret[0,0] = 1.0
-            self.ret[0,1] = 0.0
-            self.ret[0,2] = 0.0
-            self.ret[1,0] = 0.0
-            self.ret[1,1] = cosA
-            self.ret[1,2] = -sinA
-            self.ret[2,0] = 0.0
-            self.ret[2,1] = sinA
-            self.ret[2,2] = cosA
-        elif(axis == "Y" or axis == "y"):
-            self.ret[0,0] = cosA 
-            self.ret[0,1] = 0.0
-            self.ret[0,2] = sinA
-            self.ret[1,0] = 0.0
-            self.ret[1,1] = 1.0
-            self.ret[1,2] = 0.0
-            self.ret[2,0] = -sinA
-            self.ret[2,1] = 0.0
-            self.ret[2,2] = cosA
-        elif(axis == "Z" or axis == "z"):
-            self.ret[0,0] = cosA 
-            self.ret[0,1] = -sinA
-            self.ret[0,2] = 0.0
-            self.ret[1,0] = sinA
-            self.ret[1,1] = cosA
-            self.ret[1,2] = 0.0
-            self.ret[2,0] = 0.0
-            self.ret[2,1] = 0.0
-            self.ret[2,2] = 1.0
-        
-        self.ret[3, 0:3] = 0.0
-        self.ret[0:3, 3] = 0.0
-        self.ret[3, 3] = 1.0
-        return self.ret
-    def YawPitchRoll(self, y, x, z):
-        mY = copy.copy(self.rotate('y', y))
-        mX = copy.copy(self.rotate('x', x))
-        mZ = copy.copy(self.rotate('z', z))
-        mM = mZ*mX
-        mat = mM*mY
-        return mat
-"""        
 
 class Sphere():
     def __init__(self, pos=None, rad=None):
@@ -127,18 +69,6 @@ class TCube():
 
     def getMaxVec3(self):
         return self.pos + self.radius
-    """
-    def updateAxisAll(self):
-        mRot = mat44()
-        mRot.ret = mRot.YawPitchRoll(DegToRad(self.rot[0,0]), DegToRad(self.rot[1,0]), DegToRad(self.rot[2,0]))
-        self.axisX = mRot.ret*np.matrix([[1], [0], [0], [1]])
-        self.axisX = self.axisX[0:3]
-        self.axisY = mRot.ret*np.matrix([[0], [1], [0], [1]])
-        self.axisY = self.axisY[0:3]
-        self.axisZ = mRot.ret*np.matrix([[0], [0], [1], [1]])
-        self.axisZ = self.axisZ[0:3]
-    """
-
 ey = 0
 blockList = []
 sphPtList = []
@@ -228,102 +158,9 @@ preP = myP
 
 
 bHit = False
-    
-
-
-       
 
 def DegToRad(deg):
         return deg*pi/180
-
-"""
-def IsCollideBoxOBB(cA, cB):
-    vDistance = cB.pos - cA.pos
-
-    cA.updateAxisAll()
-    cB.updateAxisAll()
-
-    if not CompareLengthOBB(cA, cB, cA.axisX, vDistance):
-        return False
-    if not CompareLengthOBB(cA, cB, cA.axisY, vDistance):
-        return False
-
-    if not CompareLengthOBB(cA, cB, cA.axisZ, vDistance):
-        return False
-
-    if not CompareLengthOBB(cA, cB, cB.axisX, vDistance):
-        return False
-
-    if not CompareLengthOBB(cA, cB, cB.axisY, vDistance):
-        return False
-
-    if not CompareLengthOBB(cA, cB, cB.axisZ, vDistance):
-        return False
-
-    vSep = np.array([0, 0, 0])
-    vSep = np.cross(cA.axisX.T.flatten(), cB.axisX.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-    vSep = np.cross(cA.axisX.T.flatten(), cB.axisY.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisX.T.flatten(), cB.axisZ.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisY.T.flatten(), cB.axisX.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisY.T.flatten(), cB.axisY.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisY.T.flatten(), cB.axisZ.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisZ.T.flatten(), cB.axisX.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisZ.T.flatten(), cB.axisY.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-
-    vSep = np.cross(cA.axisZ.T.flatten(), cB.axisZ.T.flatten())
-    if not CompareLengthOBB(cA, cB, vSep, vDistance):
-        return False
-    
-    return True
-"""
-"""
-def CompareLengthOBB(cA, cB, vSep, vDistance):
-    dotVal = np.dot(np.ravel(vSep), vDistance.T.flatten())
-    length = fabs(dotVal)
-
-    dotValX = np.dot(np.ravel(cA.axisX), np.ravel(vSep))
-    dotValY = np.dot(np.ravel(cA.axisY), np.ravel(vSep))
-    dotValZ = np.dot(np.ravel(cA.axisZ), np.ravel(vSep))
-
-    lenA = fabs(dotValX*cA.radius[0,0]) \
-         + fabs(dotValY*cA.radius[1,0]) \
-         + fabs(dotValZ*cA.radius[2,0])
-    
-    dotValX = np.dot(np.ravel(cB.axisX), np.ravel(vSep))
-    dotValY = np.dot(np.ravel(cB.axisY), np.ravel(vSep))
-    dotValZ = np.dot(np.ravel(cB.axisZ), np.ravel(vSep))
-
-    lenB = fabs(dotValX*cB.radius[0,0]) \
-         + fabs(dotValY*cB.radius[1,0]) \
-         + fabs(dotValZ*cB.radius[2,0])
-
- 
-    if length > lenA + lenB:
-        return False
-    return True
-"""
 def DrawCube(pos, radius, rot, color):
     global red, green, white
     if color == 0:
@@ -332,14 +169,14 @@ def DrawCube(pos, radius, rot, color):
         c = green 
     else:
         c = white 
-    
+
     glPushMatrix()
     glTranslatef(pos[0,0], pos[1,0], pos[2,0])
     glRotatef(rot[2,0], 0, 0, 1)
     glRotatef(rot[0,0], 1, 0, 0)
     glRotatef(rot[1,0], 0, 1, 0)
     glScaled(radius[0,0]*2, radius[1,0]*2, radius[2,0]*2)
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, c)
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, c)
     glutSolidCube(1)
     glPopMatrix()
 
@@ -351,7 +188,6 @@ def isCollideOBB2Sph(sph, obb):
         dis = sph.radius - dis
         colCube = obb
         hitObP = obb.pos
-        print(revVec)
         return True
     else:
         return False
@@ -368,8 +204,6 @@ def calcLenOBB2Pt(obb, pos):
     cVec = pos - obb.pos
     Vec = np.array([[0],[0],[0]])
     lit = np.array([obb.axisX, obb.axisY, obb.axisZ])
-    #print("cvec")
-    #print(cVec)
     for i in range(3):
         L = obb.radius[i,0]
         if( L <= 0 ):
@@ -407,7 +241,6 @@ def main():
     glutKeyboardUpFunc(KeyUp)
     glutMouseFunc(mouse)
     glutMotionFunc(motion)
-    #glutPassiveMotionFunc(motion)
     init()
     glutMainLoop()
 
@@ -522,6 +355,9 @@ def display():
 
     glTranslated(-ex, 0.0, ez)
 
+
+    lightpos[0] = myP.pos[0,0]
+    lightpos[2] = myP.pos[2,0]
     glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
     glLightfv(GL_LIGHT1, GL_POSITION, lightpos2)
     glLightfv(GL_LIGHT2, GL_POSITION, lightpos3)
@@ -546,7 +382,7 @@ def scene():
     else:
         color = 2
 
-    DrawSphere(myP, False)
+    DrawSphere(myP, True)
     for cube in  blockList:
         DrawCube(cube.pos, cube.radius, cube.rot, color)
     for sphs in sphPtList:
@@ -567,15 +403,16 @@ def scene():
 def DrawSphere(sph, hit):
     global red, green, yellow, white
     if hit is True:
-        color = yellow
+        color = red
+        #color = green
     else:
-        color = green
+        color = red
     
     glPushMatrix()
     glTranslatef(sph.pos[0,0], sph.pos[1,0], sph.pos[2,0])
     glScaled(sph.radius, sph.radius, sph.radius)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
-    glutSolidSphere(1, 10, 10)
+    glutSolidSphere(1, 100, 100)
     glPopMatrix()
 
 
@@ -599,7 +436,6 @@ def mouse(button, state, x, y):
             display()
         
         elif state == GLUT_UP:
-            #r = 0
             x0 = 0
             savepoint[0] = 0
             preX = X
@@ -658,7 +494,7 @@ def KeyUp(key, x, y):
         savepoint[1] = 0.0
     elif key == b'a' or key == b'd':
         vx = 0
-    glutIdleFunc(0)
+    glutIdleFunc(idle)
 
 
 
