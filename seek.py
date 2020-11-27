@@ -14,15 +14,11 @@ WINDOW_HEIGHT = 480
 
 FIELD_WIDTH = 30
 
-dirc = 0.1
 r = 0.0
 ex = 0.0
 ez = 0.0
-P2 = [0.0, 0.0]
 V = [0.0, 0.0]
 
-point = [[0 for i in range(2)] for j in range (100)]
-pointnum = 0
 rubberband = 0
 
 t = 2
@@ -181,26 +177,18 @@ def DrawCube(pos, radius, rot, color):
     glPopMatrix()
 
 def isCollideOBB2Sph(sph, obb):
-    global dis, hitObP, colCube
-    global revVec
+    global dis
     dis = calcLenOBB2Pt(obb, sph.pos)
     if dis <= sph.radius:
         dis = sph.radius - dis
-        colCube = obb
-        hitObP = obb.pos
         return True
     else:
         return False
 
 dis = 0    
-colCube =  None
-hitObP = None
 
-revVec = np.array([[0], [0], [0]])
 
 def calcLenOBB2Pt(obb, pos):
-    global revVec
-    revVec = np.array([[0], [0], [0]])
     cVec = pos - obb.pos
     Vec = np.array([[0],[0],[0]])
     lit = np.array([obb.axisX, obb.axisY, obb.axisZ])
@@ -213,18 +201,15 @@ def calcLenOBB2Pt(obb, pos):
         s = abs(s)
         if( s > 1):
             Vec = Vec + (1-s)*L*lit[i] 
-    revVec = Vec
         
     return np.linalg.norm(Vec)  
 
 def isCollideSph2Sph(sphA, sphB):
-    global hitObP, dis
-    global revVec
+    global dis
     length = np.linalg.norm(np.ravel(sphB.pos-sphA.pos))
 
     if length <= sphA.radius + sphB.radius:
         dis = sphA.radius + sphB.radius - length
-        hitObP = sphB.pos
         return True
     else:
         return False
@@ -290,10 +275,10 @@ def idle():
 vx = 0
 
 def display():
-    global dirc, r, ex, ez, lightpos
-    global K, L, preX, preY, x0, y0
-    global P2, e, V, savepoint, t
-    global myP, colCube, hitObP, preP
+    global r, ex, ez, lightpos
+    global x0, y0
+    global e, V, savepoint
+    global myP, preP
     global bHit, dis
     global vx, startTime
 
@@ -415,15 +400,12 @@ def DrawSphere(sph, hit):
     glPopMatrix()
 
 
-preX = 0.1
-preY = 0.1
 x0 = 0
 y0 = 0
 
 def mouse(button, state, x, y):
-    global K, L, preX, preY, x0, y0
-    global P2, e, V, savepoint, t
-    global ex, ez, r, dirc
+    global x0, y0
+    global savepoint
     X = 2*(x / WINDOW_WIDTH - 0.5)
     Y = -2*(y / WINDOW_HEIGHT - 0.5)
     
@@ -437,15 +419,14 @@ def mouse(button, state, x, y):
         elif state == GLUT_UP:
             x0 = 0
             savepoint[0] = 0
-            preX = X
             rubberband = 0
             glutIdleFunc(0)
 
 savepoint = [0, 0]
 def motion(x, y):
     global WINDOW_WIDTH, WINDOW_HEIGHT
-    global V, P2, savepoint, x0, y0
-    global t, ex, ez, dirc, preX
+    global savepoint
+    global ex, ez
     X = 2*(x / WINDOW_WIDTH - 0.5)
     Y = -2*(y / WINDOW_HEIGHT - 0.5)
 
@@ -454,20 +435,16 @@ def motion(x, y):
     glEnable(GL_COLOR_LOGIC_OP)
     glLogicOp(GL_INVERT)
 
-    if preX*X < 0:
-        dirc = -dirc
-    preX = X
-
     glLogicOp(GL_COPY)
     glDisable(GL_COLOR_LOGIC_OP)
 
     rubberband = 1
-    display()
+    glutIdleFunc(idle)
     
 
 def KeyDown(key, x, y):
-    global X, Y, V, savepoint, x0, y0
-    global bHit, myP,blockList, vx
+    global savepoint, x0, y0
+    global bHit, vx
     v = 0.3
     if(key == b'w'):
         y0 = 0
@@ -488,7 +465,8 @@ def KeyDown(key, x, y):
 
 
 def KeyUp(key, x, y):
-    global V , vx
+    global vx
+    global savepoint
     if key == b'w' or key == b's':
         savepoint[1] = 0.0
     elif key == b'a' or key == b'd':
