@@ -1,5 +1,5 @@
-# CG
-CG class in openGL by Python3
+# OpenGL　演習
+OpenGL class in openGL by Python3
 
 課題リスト
 1. [x] zoom
